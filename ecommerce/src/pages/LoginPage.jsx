@@ -1,12 +1,17 @@
 import { useState } from 'react';
 import axios from 'axios';
-import "./LoginPage.css"
+import {useNavigate} from 'react-router-dom'; 
+import "./LoginPage.css";
+axios.defaults.withCredentials = true;
+
 
 export default function LoginPage() {
-  // Modes: 'signin', 'signup', 'forgot'
+
   const [mode, setMode] = useState('signin');
 
-  // State for form inputs
+  const navigate = useNavigate();
+
+
   const [formData, setFormData] = useState({
     email: '',
     password: '',
@@ -19,18 +24,31 @@ export default function LoginPage() {
   };
 
   const sendUserData = async (e) => {
-    console.log("Button.CLicked");
+    console.log("Button Clicked");
     e.preventDefault();
     try {
       const response = await axios.post('http://localhost:3001/api/register', formData);
       alert("data sent");
       console.log(response);
       setMode('signin');
-    }
-    catch (err) {
+    }catch (err) {
       console.error("error:", err);
     }
   };
+
+  const checkUserData = async (e) =>{
+    console.log("Login button");
+    e.preventDefault();
+    try{
+      const response = await axios.post('http://localhost:3001/api/loginCheck',formData);
+      alert("Login data sent");
+      console.log(response);
+      navigate('/');
+    }catch(error){
+      console.error("Login failed : ",error);
+      alert("Invalid credentials");
+    }
+  }
 
   return (
     <div className="auth-wrapper">
@@ -41,7 +59,7 @@ export default function LoginPage() {
             <h2>Login In</h2>
             <input name="email" placeholder="Email" onChange={handleInputChange} />
             <input name="password" type="password" placeholder="Password" onChange={handleInputChange} />
-            <button className="primary-btn">Login</button>
+            <button className="primary-btn" onClick={checkUserData}>Login</button>
             <p>New here? <span className="toggle-link" onClick={() => setMode('signup')}>Create account</span></p>
           </div>
         ) : mode === 'signup' ? (
