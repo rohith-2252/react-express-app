@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import axios from 'axios';
-import {useNavigate} from 'react-router-dom'; 
+import { useNavigate } from 'react-router-dom';
 import "./LoginPage.css";
 axios.defaults.withCredentials = true;
 
@@ -31,21 +31,20 @@ export default function LoginPage() {
       alert("data sent");
       console.log(response);
       setMode('signin');
-    }catch (err) {
+    } catch (err) {
       console.error("error:", err);
     }
   };
 
-  const checkUserData = async (e) =>{
+  const checkUserData = async (e) => {
     console.log("Login button");
     e.preventDefault();
-    try{
-      const response = await axios.post('http://localhost:3001/api/loginCheck',formData);
+    try {
+      const response = await axios.post('http://localhost:3001/api/loginCheck', formData);
       alert("Login data sent");
       console.log(response);
       navigate('/');
-    }catch(error){
-      console.error("Login failed : ",error);
+    } catch (error) {      console.error("Login failed : ", error);
       alert("Invalid credentials");
     }
   }

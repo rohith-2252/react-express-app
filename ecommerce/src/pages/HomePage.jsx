@@ -1,27 +1,39 @@
 
 import './HomePage.css'
 import { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom'
+import axios from 'axios';
 
 import { Header } from '../component/header.jsx'
 function HomePage() {
   const [products, setProducts] = useState([]);
   const [loading, setLoading] = useState(true);
-  useEffect(() => {
-    fetch('http://localhost:3001/api/products')
-      .then(response => response.json())
-      .then(data => {
+  const [profile,setProfile] = useState();
+  const navigate = useNavigate();
 
-        setProducts(data);
-        setLoading(false);
+  useEffect(() => {
+    axios.get('http://localhost:3001/api/check-auth')
+      .then(res => {
+        if (!res.data.authenticated) {
+          navigate('/login')
+        } else {
+          setProfile(res.data.user.email);
+          return axios.get('http://localhost:3001/api/products');
+        }
       })
-      .catch(error => {
-        console.error("Error fetching data: ", error);
-        setLoading(false);
+      .then(res => {
+        if (res) {
+          setProducts(res.data);
+          setLoading(false);
+        }
+      })
+      .catch(err => {
+        console.error(err);
+        navigate('/login');
       });
-  }, []);
+  }, [navigate]);
 
   if (loading) return <div>Loading Products....</div>
-  console.log(products[0]);
 
   return (
     <>
@@ -83,7 +95,9 @@ function HomePage() {
           ))}
         </div>
       </div >
+      <h>{profile}</h>
     </>
+    
   );
 
 }
