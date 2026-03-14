@@ -39,7 +39,7 @@ app.use(function (req, res, next) {
 })
 
 function mustBeLoggedIn(req, res, next) {
-    console.log(req.user);
+    // console.log(req.user);
     if (req.user) {
         return next();
     }
@@ -128,18 +128,18 @@ app.post('/api/cart', mustBeLoggedIn, (req, res) => {
 
     const checkSql = "SELECT * FROM cart WHERE user_id = ? AND product_id = ?";
     db.get(checkSql, [userId, productId], (err, row) => {
-        if (err) { return callError(err)};
+        if (err) { return callError(err) };
         if (row) {
             const newQty = row.quantity + Number(quantity);
             db.run("UPDATE cart SET quantity = ? WHERE cart_id = ?", [newQty, row.cart_id], (err) => {
-                if (err){ return callError(err)};
-                
+                if (err) { return callError(err) };
+
                 res.json({ message: "Quantity updated" });
             });
         } else {
             const insertSql = "INSERT INTO cart ( user_id,product_id,quantity) VALUES(?,?,?)";
             db.run(insertSql, [userId, productId, quantity], function (err) {
-                if (err){return  callError(err)};
+                if (err) { return callError(err) };
                 res.json({ message: "Added to cart", id: this.lastID });
             });
         }
@@ -149,14 +149,14 @@ app.post('/api/cart', mustBeLoggedIn, (req, res) => {
 app.get('/api/cart', mustBeLoggedIn, (req, res) => {
 
     const userId = req.user.id;
-    console.log(userId);
+    // console.log(userId);
     const sql = `
     SELECT cart.quantity, products.* FROM cart
     JOIN products ON cart.product_id = products.id
     WHERE cart.user_id = ?`;
 
     db.all(sql, [userId], (err, rows) => {
-        if (err){return callError(err)};
+        if (err) { return callError(err) };
 
         const cartItems = rows.map(row => ({
             cartId: row.cart_id,
@@ -164,12 +164,34 @@ app.get('/api/cart', mustBeLoggedIn, (req, res) => {
             name: row.name,
             image: `http://localhost:${PORT}/${row.image}`,
             priceCents: row.price_cents,
-            quantity: row.quantity
+            quantity: row.quantity,
+            id: userId,
         }));
 
         res.json(cartItems);
     })
 })
+app.delete("/api/cart-delete/:id/:product", (req, res) => {
+    const productId = req.params.product;
+    const Id = req.params.id;
+
+    console.log("User:", Id);
+    console.log("Product:", productId);
+
+    db.run(
+        "DELETE FROM cart WHERE user_id = ? AND product_id = ?",
+        [Id, productId],
+        function (err) {
+            if (err) {
+                return res.status(500).json({ error: err.message });
+            }
+
+            console.log("Rows deleted:", this.changes);
+
+            res.status(200).json({ message: "Item deleted successfully" });
+        }
+    );
+});
 
 
 

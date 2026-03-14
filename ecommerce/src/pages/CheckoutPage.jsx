@@ -10,10 +10,9 @@ export function CheckoutPage() {
 
     useEffect(() => {
         axios.get('http://localhost:3001/api/cart', { withCredentials: true })
-            .then(res => setCartItems(res.data))
+            .then(res => { setCartItems(res.data) })
             .catch(err => console.error(err));
     }, []);
-
     const totalCents = cartItems.reduce((sum, item) => sum + (item.priceCents * item.quantity), 0);
     const shippingCents = 499; // Example static shipping
     const totalBeforeTax = totalCents + shippingCents;
@@ -22,7 +21,6 @@ export function CheckoutPage() {
 
     const monthNames = ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"];
     const dayNames = ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"];
-
 
     function getDate(daysAgo) {
         const date = new Date();
@@ -34,7 +32,18 @@ export function CheckoutPage() {
 
     }
 
-    const cnt = 0;
+    const deleteProduct = async (id, product) => {
+        try{
+        const response = await axios.delete(
+            `http://localhost:3001/api/cart-delete/${id}/${product}`,
+            { withCredentials: true }
+        );
+        console.log(response);
+        }catch(err){
+            console.log("Error",err);
+        }
+    }
+
     return (
         <>
             <title>Checkout</title>
@@ -78,7 +87,7 @@ export function CheckoutPage() {
                                             <span className="update-quantity-link link-primary">
                                                 Update
                                             </span>
-                                            <span className="delete-quantity-link link-primary">
+                                            <span className="delete-quantity-link link-primary" onClick={() => deleteProduct(item.id, item.productId)}>
                                                 Delete
                                             </span>
                                         </div>
@@ -116,7 +125,7 @@ export function CheckoutPage() {
                                         <div className="delivery-option">
                                             <input type="radio"
                                                 className="delivery-option-input"
-                                                name={item.productId}/>
+                                                name={item.productId} />
                                             <div>
                                                 <div className="delivery-option-date">
                                                     {getDate(2)}
