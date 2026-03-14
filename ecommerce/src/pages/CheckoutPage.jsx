@@ -1,22 +1,55 @@
 import './checkout-header.css'
 import './CheckoutPage.css'
+import { useState, useEffect } from 'react';
+import axios from 'axios';
+
 
 export function CheckoutPage() {
+
+    const [cartItems, setCartItems] = useState([]);
+
+    useEffect(() => {
+        axios.get('http://localhost:3001/api/cart', { withCredentials: true })
+            .then(res => setCartItems(res.data))
+            .catch(err => console.error(err));
+    }, []);
+
+    const totalCents = cartItems.reduce((sum, item) => sum + (item.priceCents * item.quantity), 0);
+    const shippingCents = 499; // Example static shipping
+    const totalBeforeTax = totalCents + shippingCents;
+    const taxCents = totalBeforeTax * 0.1;
+    const orderTotal = totalBeforeTax + taxCents
+
+    const monthNames = ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"];
+    const dayNames = ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"];
+
+
+    function getDate(daysAgo) {
+        const date = new Date();
+        date.setDate(date.getDate() + daysAgo);
+        const day = date.getDate();
+        const month = date.getMonth();
+        const nameDay = date.getDay();
+        return `${dayNames[nameDay]}, ${monthNames[month]} ${day}`;
+
+    }
+
+    const cnt = 0;
     return (
         <>
-        <title>Checkout</title>
+            <title>Checkout</title>
             <div className="checkout-header">
                 <div className="header-content">
                     <div className="checkout-header-left-section">
                         <a href="/">
-                            <img className="logo" src="images/logo.png" />
+                            <img className="logo" src="images/logo-white.png" />
                             <img className="mobile-logo" src="images/mobile-logo.png" />
                         </a>
                     </div>
 
                     <div className="checkout-header-middle-section">
                         Checkout (<a className="return-to-home-link"
-                            href="/">3 items</a>)
+                            href="/"> {cartItems.length} items</a>)
                     </div>
 
                     <div className="checkout-header-right-section">
@@ -30,7 +63,104 @@ export function CheckoutPage() {
 
                 <div className="checkout-grid">
                     <div className="order-summary">
-                        <div className="cart-item-container">
+
+                        {cartItems.map((item) => (
+                            <div className="cart-item-container" key={item.productId}>
+                                <div className="cart-item-details-grid">
+                                    <img className="product-image" src={item.image} />
+                                    <div className="cart-item-details">
+                                        <div className="product-name">{item.name}</div>
+                                        <div className="product-price">
+                                            ${(item.priceCents / 100).toFixed(2)}
+                                        </div>
+                                        <div className="product-quantity">
+                                            Quantity: <span className="quantity-label">{item.quantity}</span>
+                                            <span className="update-quantity-link link-primary">
+                                                Update
+                                            </span>
+                                            <span className="delete-quantity-link link-primary">
+                                                Delete
+                                            </span>
+                                        </div>
+                                    </div>
+                                    <div className="delivery-options">
+                                        <div className="delivery-options-title">
+                                            Choose a delivery option:
+                                        </div>
+                                        <div className="delivery-option">
+                                            <input type="radio" defaultChecked
+                                                className="delivery-option-input"
+                                                name={item.productId} />
+                                            <div>
+                                                <div className="delivery-option-date">
+                                                    {getDate(6)}
+                                                </div>
+                                                <div className="delivery-option-price">
+                                                    FREE Shipping
+                                                </div>
+                                            </div>
+                                        </div>
+                                        <div className="delivery-option">
+                                            <input type="radio"
+                                                className="delivery-option-input"
+                                                name={item.productId} />
+                                            <div>
+                                                <div className="delivery-option-date">
+                                                    {getDate(4)}
+                                                </div>
+                                                <div className="delivery-option-price">
+                                                    $4.99 - Shipping
+                                                </div>
+                                            </div>
+                                        </div>
+                                        <div className="delivery-option">
+                                            <input type="radio"
+                                                className="delivery-option-input"
+                                                name={item.productId}/>
+                                            <div>
+                                                <div className="delivery-option-date">
+                                                    {getDate(2)}
+                                                </div>
+                                                <div className="delivery-option-price">
+                                                    $9.99 - Shipping
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        ))}
+                    </div>
+                    <div className="payment-summary">
+                        <div className="payment-summary-title">Payment Summary</div>
+                        <div className="payment-summary-row">
+                            <div>Items ({cartItems.length}):</div>
+                            <div>${(totalCents / 100).toFixed(2)}</div>
+                        </div>
+                        <div className="payment-summary-row subtotal-row">
+                            <div>Total before tax:</div>
+                            <div className="payment-summary-money">$47.74</div>
+                        </div>
+
+                        <div className="payment-summary-row">
+                            <div>Estimated tax (10%):</div>
+                            <div className="payment-summary-money">$4.77</div>
+                        </div>
+
+                        <div className="payment-summary-row total-row">
+                            <div>Order total:</div>
+                            <div>${(orderTotal / 100).toFixed(2)}</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </>
+    );
+
+
+}
+
+{/* <div className="cart-item-container">
                             <div className="delivery-date">
                                 Delivery date: Tuesday, June 21
                             </div>
@@ -219,4 +349,4 @@ export function CheckoutPage() {
             </div>
         </>
     );
-}
+} */}

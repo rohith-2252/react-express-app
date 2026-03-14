@@ -58,7 +58,7 @@ app.get('/api/products', (req, res) => {
 
 app.get("/", mustBeLoggedIn, (req, res) => {
     if (req.user) {
-        console.log(req.user);
+        // console.log(req.user);
         return res.render("/") // Use return to prevent further execution
     }
     res.render("/login");
@@ -85,7 +85,7 @@ app.post('/api/loginCheck', (req, res) => {
         if (row.password === password) {
 
             const token = jwt.sign(
-                { id: row.id, email: row.email },
+                { id: row.user_id, email: row.email, name: row.name },
                 JWT_SECRET,
                 { expiresIn: '1d' }
             );
@@ -98,7 +98,7 @@ app.post('/api/loginCheck', (req, res) => {
             });
             return res.status(200).json({
                 message: "Login Sucessfully",
-                user: { id: row.id, name: row.name, email: row.email }
+                user: { id: row.user_id, name: row.name, email: row.email }
             });
         } else {
             return res.status(401).json({ message: "Incorrect Password" });
@@ -106,13 +106,73 @@ app.post('/api/loginCheck', (req, res) => {
     });
 });
 app.get('/api/check-auth', (req, res) => {
-    console.log("DATA : ", req.user);
+    // console.log("DATA : ", req.user);
     if (req.user) {
         res.json({ authenticated: true, user: req.user });
     } else {
         res.json({ authenticated: false });
     }
 });
+// app.get('/api/getLoginInfo', (req, res) => {
+//     console.log(req.body.user.email);
+// })
+
+function callError(err) {
+    return res.status(500).json({ error: err.message });
+}
+
+
+app.post('/api/cart', mustBeLoggedIn, (req, res) => {
+    const { productId, quantity } = req.body;
+    const userId = req.user.id;
+
+    const checkSql = "SELECT * FROM cart WHERE user_id = ? AND product_id = ?";
+    db.get(checkSql, [userId, productId], (err, row) => {
+        if (err) { return callError(err)};
+        if (row) {
+            const newQty = row.quantity + Number(quantity);
+            db.run("UPDATE cart SET quantity = ? WHERE cart_id = ?", [newQty, row.cart_id], (err) => {
+                if (err){ return callError(err)};
+                
+                res.json({ message: "Quantity updated" });
+            });
+        } else {
+            const insertSql = "INSERT INTO cart ( user_id,product_id,quantity) VALUES(?,?,?)";
+            db.run(insertSql, [userId, productId, quantity], function (err) {
+                if (err){return  callError(err)};
+                res.json({ message: "Added to cart", id: this.lastID });
+            });
+        }
+    });
+});
+
+app.get('/api/cart', mustBeLoggedIn, (req, res) => {
+
+    const userId = req.user.id;
+    console.log(userId);
+    const sql = `
+    SELECT cart.quantity, products.* FROM cart
+    JOIN products ON cart.product_id = products.id
+    WHERE cart.user_id = ?`;
+
+    db.all(sql, [userId], (err, rows) => {
+        if (err){return callError(err)};
+
+        const cartItems = rows.map(row => ({
+            cartId: row.cart_id,
+            productId: row.id,
+            name: row.name,
+            image: `http://localhost:${PORT}/${row.image}`,
+            priceCents: row.price_cents,
+            quantity: row.quantity
+        }));
+
+        res.json(cartItems);
+    })
+})
+
+
+
 
 app.listen(PORT, () => {
     console.log(`Server running at http://localhost:${PORT}`);

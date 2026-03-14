@@ -43,8 +43,9 @@ export default function LoginPage() {
       const response = await axios.post('http://localhost:3001/api/loginCheck', formData);
       alert("Login data sent");
       console.log(response);
-      navigate('/');
-    } catch (error) {      console.error("Login failed : ", error);
+      navigate('/', { replace: true });
+    } catch (error) {
+      console.error("Login failed : ", error);
       alert("Invalid credentials");
     }
   }

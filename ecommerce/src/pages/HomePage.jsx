@@ -5,10 +5,14 @@ import { useNavigate } from 'react-router-dom'
 import axios from 'axios';
 
 import { Header } from '../component/header.jsx'
+import { Footer } from '../component/Footer.jsx';
+
+
+
 function HomePage() {
   const [products, setProducts] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [profile,setProfile] = useState();
+  const [profile, setProfile] = useState([]);
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -17,7 +21,7 @@ function HomePage() {
         if (!res.data.authenticated) {
           navigate('/login')
         } else {
-          setProfile(res.data.user.email);
+          setProfile(res.data.user);
           return axios.get('http://localhost:3001/api/products');
         }
       })
@@ -32,6 +36,23 @@ function HomePage() {
         navigate('/login');
       });
   }, [navigate]);
+
+  const [selectedQuantities, setSelectedQuantities] = useState({});
+
+
+  const handleAddToCart = (productId) => {
+    const quantity = selectedQuantities[productId] || 1;
+    axios.post('http://localhost:3001/api/cart',
+      { productId, quantity },
+      { withCredentials: true }
+    )
+      .then(() => {
+        alert("Added to cart")
+      }
+      )
+      .catch(err => console.error(err));
+  }
+
 
   if (loading) return <div>Loading Products....</div>
 
@@ -66,7 +87,7 @@ function HomePage() {
                 </div>
 
                 <div className="product-quantity-container">
-                  <select>
+                  <select onChange={(e) => setSelectedQuantities({ ...selectedQuantities, [product.id]: e.target.value })} >
                     <option value="1">1</option>
                     <option value="2">2</option>
                     <option value="3">3</option>
@@ -87,17 +108,22 @@ function HomePage() {
                   Added
                 </div>
 
-                <button className="add-to-cart-button button-primary">
+                <button className="add-to-cart-button button-primary" onClick={() => handleAddToCart(product.id)}>
                   Add to Cart
                 </button>
+
               </div>
             </>
           ))}
         </div>
       </div >
-      <h>{profile}</h>
+      <p>{profile.name}</p>
+      <Footer
+        user={profile}></Footer>
+
+
     </>
-    
+
   );
 
 }

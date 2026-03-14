@@ -9,13 +9,7 @@ const db = new sqlite3.Database('../backend/shop.db', (err) => {
     console.log("Connected to the SQLite DB");
 })
 
-db.run(`CREATE TABLE IF NOT EXISTS cart (
-    cart_id INTEGER PRIMARY KEY AUTOINCREMENT,
-    user_id INTEGER,
-    product_id TEXT,
-    quantity INTEGER,
-    FOREIGN KEY(user_id) REFERENCES users(user_id),
-    FOREIGN KEY(product_id) REFERENCES products(id)
-)`);
+db.run(`DROP TABLE IF EXISTS cart;
+        `);
 
 app.listen(3001, () => console.log('Server running on port 3001'));
