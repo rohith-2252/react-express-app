@@ -193,6 +193,27 @@ app.delete("/api/cart-delete/:id/:product", (req, res) => {
     );
 });
 
+app.put("/api/cart/:itemCount/:productId/:userId", (req, res) => {
+    const itemCount = req.params.itemCount;
+    const productId = req.params.productId;
+    const userId = req.params.userId;
+    console.log(itemCount, productId, userId);
+    console.log(
+`UPDATE cart SET quantity=${itemCount} WHERE product_id=${productId} AND user_id=${userId}`
+);
+    db.run(
+        "UPDATE cart SET quantity = ? WHERE product_id = ? AND user_id = ?",
+        [itemCount, productId, userId],
+        function (err) {
+            if (err) {
+                return res.status(500).json({ error: err.message });
+            }
+            console.log("Rows Updated :", this.changes);
+
+            return res.status(200).json({ message: "Item Updated successfully" });
+        }
+    );
+})
 
 
 
