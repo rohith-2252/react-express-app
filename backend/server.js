@@ -121,6 +121,30 @@ function callError(err) {
     return res.status(500).json({ error: err.message });
 }
 
+app.post(`/api/singleProduct/:productId`,mustBeLoggedIn,(req,res) =>{
+    const productId = req.params.productId;
+    console.log(productId);
+    const data = db.get('SELECT * from products WHERE id = ?',
+        [productId],
+        function(err,row){
+            if(err){
+                console.log("err",err);
+                return res.status(500);
+            }
+        const Item = {
+            productId: row.id,
+            name: row.name,
+            image: `http://localhost:${PORT}/${row.image}`,
+            priceCents: row.price_cents,
+            ratingStar:row.rating_stars,
+            ratingCount:row.rating_count,
+        };
+        return res.status(200).json({"Messase":"data retrived",Item});
+        }
+    )
+
+}
+)
 
 app.post('/api/cart', mustBeLoggedIn, (req, res) => {
     const { productId, quantity } = req.body;
@@ -171,7 +195,7 @@ app.get('/api/cart', mustBeLoggedIn, (req, res) => {
         res.json(cartItems);
     })
 })
-app.delete("/api/cart-delete/:id/:product", (req, res) => {
+app.delete("/api/cart/:id/:product", (req, res) => {
     const productId = req.params.product;
     const Id = req.params.id;
 
@@ -199,8 +223,8 @@ app.put("/api/cart/:itemCount/:productId/:userId", (req, res) => {
     const userId = req.params.userId;
     console.log(itemCount, productId, userId);
     console.log(
-`UPDATE cart SET quantity=${itemCount} WHERE product_id=${productId} AND user_id=${userId}`
-);
+        `UPDATE cart SET quantity=${itemCount} WHERE product_id=${productId} AND user_id=${userId}`
+    );
     db.run(
         "UPDATE cart SET quantity = ? WHERE product_id = ? AND user_id = ?",
         [itemCount, productId, userId],

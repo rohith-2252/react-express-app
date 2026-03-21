@@ -1,5 +1,6 @@
 import './checkout-header.css'
 import './CheckoutPage.css'
+import {Footer} from '../component/Footer';
 import { useState, useEffect } from 'react';
 import axios from 'axios';
 
@@ -32,6 +33,9 @@ export function CheckoutPage() {
 
     }
     const updateCart = async (itemCount, productId, userId) => {
+        if (itemCount == 1) {
+            return;
+        }
         try {
             const response = await axios.put(`http://localhost:3001/api/cart/${itemCount}/${productId}/${userId}`,
                 {},
@@ -48,6 +52,8 @@ export function CheckoutPage() {
         try {
             const response = await axios.get('http://localhost:3001/api/cart', {}, { withCredentials: true });
             setCartItems(response.data);
+            console.log(response.data);
+            console.log("Data fetched");
         }
         catch (err) {
             console.error(err);
@@ -57,19 +63,23 @@ export function CheckoutPage() {
     const deleteProduct = async (id, product) => {
         try {
             const response = await axios.delete(
-                `http://localhost:3001/api/cart-delete/${id}/${product}`,
+                `http://localhost:3001/api/cart/${id}/${product}`,
                 { withCredentials: true }
             );
-            console.log(response);
+            console.log(response.data);
         } catch (err) {
             console.log("Error", err);
         }
 
         fetchData();
     }
-    const [showCount, setShowCount] = useState(false);
-    const renderCount = () => {
-        setShowCount(true);
+    const [showCount, setShowCount] = useState(null);
+    const renderCount = (id) => {
+        setShowCount(id);
+    }
+
+    const placeOrder = () => {
+        console.log("OrderPlaced");
     }
 
 
@@ -115,22 +125,14 @@ export function CheckoutPage() {
                                             Quantity: <span className="quantity-label">{item.quantity}</span>
                                             <span
                                                 className="update-quantity-link link-primary"
-                                                onClick={renderCount}
+                                                onClick={() => renderCount(item.productId)}
                                             >
-                                                {showCount ? (
-                                                    <select name={item.productId} onChange={(e) => updateCart(e.target.value, item.productId, item.id)} defaultValue="1">
-                                                        <option value="1">1</option>
-                                                        <option value="2">2</option>
-                                                        <option value="3">3</option>
-                                                        <option value="4">4</option>
-                                                        <option value="5">5</option>
-                                                        <option value="6">6</option>
-                                                        <option value="7">7</option>
-                                                        <option value="8">8</option>
-                                                        <option value="9">9</option>
-                                                        <option value="10">10</option>
-                                                    </select>
-                                                ) : (
+                                                {(showCount == item.productId ?
+                                                    <>
+                                                        <button onClick={() => { updateCart(item.quantity + 1, item.productId, item.id) }}>+</button>
+                                                        <button onClick={() => { updateCart(item.quantity - 1, item.productId, item.id) }}>-</button>
+                                                    </>
+                                                    :
                                                     "Update"
                                                 )}
                                             </span>
@@ -207,9 +209,16 @@ export function CheckoutPage() {
                             <div>Order total:</div>
                             <div>${(orderTotal / 100).toFixed(2)}</div>
                         </div>
+                        <div>
+                            <button className="order-button" onClick={() => { placeOrder() }}>
+                                <p className="order-button-font"> Order</p>
+                            </button>
+
+                        </div>
                     </div>
                 </div>
             </div>
+            <Footer user></Footer>
         </>
     );
 

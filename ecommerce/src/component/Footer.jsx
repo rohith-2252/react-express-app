@@ -1,4 +1,4 @@
-
+import {Link} from 'react-router'
 import './Footer.css';
 
 
@@ -7,9 +7,9 @@ export function Footer({user}) {
     return (
         <footer className="bottom-nav">
             <div className="nav-links">
-                <button onClick={() => window.scrollTo(0, 0)}>Home</button>
+                <Link to="/"><button>Home</button></Link>
                 <button>Orders</button>
-                <button>Cart</button>
+                <Link to="/checkout"><button >Cart</button></Link>
             </div>
 
             <div className="profile-section">

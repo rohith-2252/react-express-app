@@ -4,7 +4,7 @@ import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom'
 import axios from 'axios';
 
-import { Header } from '../component/header.jsx'
+import { Header } from '../component/Header.jsx'
 import { Footer } from '../component/Footer.jsx';
 
 
@@ -27,6 +27,7 @@ function HomePage() {
       })
       .then(res => {
         if (res) {
+          
           setProducts(res.data);
           setLoading(false);
         }
@@ -38,6 +39,22 @@ function HomePage() {
   }, [navigate]);
 
   const [selectedQuantities, setSelectedQuantities] = useState({});
+  const [addButton,setAddButton] = useState(null);
+  const changeAddButton= (id)=>{
+    
+    setAddButton(id);
+
+    setTimeout(()=>{
+      setAddButton(null)
+    },2000
+  );
+
+  }
+  const singleProduct = (productid)=>{
+
+    navigate(`/product/${productid}`);
+            
+  }
 
 
   const handleAddToCart = (productId) => {
@@ -47,14 +64,20 @@ function HomePage() {
       { withCredentials: true }
     )
       .then(() => {
-        alert("Added to cart")
+        changeAddButton(productId);
       }
       )
       .catch(err => console.error(err));
   }
 
 
-  if (loading) return <div>Loading Products....</div>
+  if (loading) return     <>
+      <div className="loading-body">
+    <div className="loading-content">
+
+    </div>
+  </div>
+</>
 
   return (
     <>
@@ -64,8 +87,8 @@ function HomePage() {
           {products.map((product) => (
 
             <>
-              <div className="product-container" key={product.id}>
-                <div className="product-image-container">
+              <div className="product-container" key={product.id} >
+                <div className="product-image-container" onClick={()=>{singleProduct(product.id)}}>
                   <img className="product-image"
                     src={product.image} />
                 </div>
@@ -103,13 +126,11 @@ function HomePage() {
 
                 <div className="product-spacer"></div>
 
-                <div className="added-to-cart">
-                  <img src="images/icons/checkmark.png" />
-                  Added
-                </div>
 
-                <button className="add-to-cart-button button-primary" onClick={() => handleAddToCart(product.id)}>
-                  Add to Cart
+
+                <button className="add-to-cart-button button-primary" key={product.id} onClick={() => handleAddToCart(product.id)}>
+                  {(addButton == product.id ? "Added to Cart"
+                    : "Add to Cart")}
                 </button>
 
               </div>
@@ -117,7 +138,6 @@ function HomePage() {
           ))}
         </div>
       </div >
-      <p>{profile.name}</p>
       <Footer
         user={profile}></Footer>
 

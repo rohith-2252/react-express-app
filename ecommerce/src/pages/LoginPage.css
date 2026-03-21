@@ -1,6 +1,7 @@
 .auth-wrapper {
   display: flex;
-  flex-direction: column; /* Stack the box and the forgot link */
+  flex-direction: column;
+  /* Stack the box and the forgot link */
   align-items: center;
   justify-content: center;
   height: 100vh;
@@ -12,7 +13,7 @@
   background: white;
   padding: 40px;
   border-radius: 12px;
-  box-shadow: 0 8px 24px rgba(0,0,0,0.1);
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.1);
   width: 100%;
   max-width: 400px;
   text-align: center;
@@ -35,13 +36,14 @@
   margin: 8px 0;
   border: 1px solid #dddfe2;
   border-radius: 6px;
-  box-sizing: border-box; /* Critical for padding */
+  box-sizing: border-box;
+  /* Critical for padding */
 }
 
 .primary-btn {
   width: 100%;
   padding: 12px;
-  background-color: #0866ff;
+  background-color: rgb(10, 110, 62);
   color: white;
   border: none;
   border-radius: 6px;
@@ -51,14 +53,15 @@
 }
 
 .toggle-link {
-  color: #0866ff;
+  
+  color: rgb(10, 110, 62);
   cursor: pointer;
   font-weight: 600;
 }
 
 .external-link {
   margin-top: 20px;
-  color: #0866ff;
+  color: rgb(10, 110, 62);
   cursor: pointer;
   font-size: 14px;
   text-decoration: none;
