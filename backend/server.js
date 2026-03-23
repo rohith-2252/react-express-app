@@ -17,6 +17,7 @@ app.use(express.json());
 
 
 const jwt = require('jsonwebtoken');
+const { userInfo } = require('os');
 app.use('/images', express.static(path.join(__dirname, 'images')));
 
 const db = new sqlite3.Database('./shop.db', (err) => {
@@ -145,6 +146,17 @@ app.post(`/api/singleProduct/:productId`,mustBeLoggedIn,(req,res) =>{
 
 }
 )
+function getDate(daysAgo) {
+        const monthNames = ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"];
+    const dayNames = ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"];
+        const date = new Date();
+        date.setDate(date.getDate() + daysAgo);
+        const day = date.getDate();
+        const month = date.getMonth();
+        const nameDay = date.getDay();
+        return `${dayNames[nameDay]}, ${monthNames[month]} ${day}`;
+
+    }
 
 app.post('/api/cart', mustBeLoggedIn, (req, res) => {
     const { productId, quantity } = req.body;
@@ -161,8 +173,9 @@ app.post('/api/cart', mustBeLoggedIn, (req, res) => {
                 res.json({ message: "Quantity updated" });
             });
         } else {
-            const insertSql = "INSERT INTO cart ( user_id,product_id,quantity) VALUES(?,?,?)";
-            db.run(insertSql, [userId, productId, quantity], function (err) {
+            const date = getDate(6); 
+            const insertSql = "INSERT INTO cart ( user_id,product_id,quantity,date,shipping) VALUES(?,?,?,?,?)";
+            db.run(insertSql, [userId, productId, quantity,date,0], function (err) {
                 if (err) { return callError(err) };
                 res.json({ message: "Added to cart", id: this.lastID });
             });
@@ -170,17 +183,40 @@ app.post('/api/cart', mustBeLoggedIn, (req, res) => {
     });
 });
 
+app.put('/api/cart/option',(req,res)=>{
+    const date = req.body[0];
+    const productId = req.body[1];
+    const shipping= req.body[2];
+    const userId= req.body[3];
+    console.log(date);
+
+    
+
+    db.run(
+        'UPDATE cart SET date = ?,shipping = ? WHERE product_id = ? AND user_id = ?',
+        [date,shipping,productId,userId],
+        function(err){
+            if(err){
+                console.log(err);
+                return res.json({message:"err0r"});
+            }
+            console.log("executed");
+            res.json({message:"updated"});
+        }
+    )
+    
+})
 app.get('/api/cart', mustBeLoggedIn, (req, res) => {
 
     const userId = req.user.id;
     // console.log(userId);
     const sql = `
-    SELECT cart.quantity, products.* FROM cart
+    SELECT cart.*, products.* FROM cart
     JOIN products ON cart.product_id = products.id
     WHERE cart.user_id = ?`;
 
     db.all(sql, [userId], (err, rows) => {
-        if (err) { return callError(err) };
+        if (err) {return res.status(500).json({ error: err.message })};
 
         const cartItems = rows.map(row => ({
             cartId: row.cart_id,
@@ -189,6 +225,7 @@ app.get('/api/cart', mustBeLoggedIn, (req, res) => {
             image: `http://localhost:${PORT}/${row.image}`,
             priceCents: row.price_cents,
             quantity: row.quantity,
+            shipping:row.shipping,
             id: userId,
         }));
 
